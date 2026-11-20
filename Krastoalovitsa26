@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>КРЪСТОВИЦА // АРЕНА</title>
+  <style>
+    :root {
+      --bg: #090b12;
+      --panel: #121726;
+      --panel-2: #182036;
+      --accent: #7c5cff;
+      --accent-2: #00d2ff;
+      --ok: #19c37d;
+      --bad: #ff4d6d;
+      --text: #f3f6ff;
+      --muted: #9aa6c7;
+      --cell-bg: #1c243b;
+      --cell-active: #342966;
+      --cell-word: #222d4a;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top, #151b33 0%, var(--bg) 65%);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      gap: 12px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    header {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      font-size: 15px;
+      background: linear-gradient(90deg, #ffffff, var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      color: var(--text);
+      background: var(--panel-2);
+      transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, var(--accent), #5636e6);
+      border-color: transparent;
+      box-shadow: 0 6px 18px rgba(124, 92, 255, 0.35);
+    }
+
+    .clue-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .clue-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .clue-text {
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .board-wrap {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .grid {
+      display: grid;
+      gap: 4px;
+      width: 100%;
+      max-width: 390px;
+      aspect-ratio: 1 / 1;
+    }
+
+    .cell {
+      position: relative;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: clamp(15px, 4.5vw, 22px);
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .cell.block {
+      background: transparent;
+    }
+
+    .cell.open {
+      background: var(--cell-bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .cell.word-highlight {
+      background: var(--cell-word);
+      border-color: rgba(0, 210, 255, 0.35);
+    }
+
+    .cell.active {
+      background: var(--cell-active);
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 2px rgba(0, 210, 255, 0.25);
+    }
+
+    .cell.correct {
+      background: rgba(25, 195, 125, 0.22);
+      border-color: var(--ok);
+      color: #8ef5c6;
+    }
+
+    .cell.wrong {
+      background: rgba(255, 77, 109, 0.18);
+      border-color: var(--bad);
+      color: #ff9cb0;
+    }
+
+    .cell .num {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      line-height: 1;
+    }
+
+    .status-banner {
+      text-align: center;
+      font-size: 13px;
+      color: var(--ok);
+      font-weight: 700;
+      min-height: 18px;
+    }
+
+    .status-banner.error {
+      color: var(--bad);
+    }
+
+    .keyboard {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .kb-row {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .key {
+      flex: 1;
+      max-width: 38px;
+      height: 40px;
+      padding: 0;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 9px;
+      background: var(--panel-2);
+    }
+
+    .key.wide {
+      max-width: 64px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">КРЪСТОВИЦА // АРЕНА</div>
+      <div class="controls">
+        <button id="dirBtn" type="button">Посока: →</button>
+        <button id="nextPuzzleBtn" class="primary" type="button">НОВА ИГРА</button>
+      </div>
+    </header>
+
+    <div class="clue-box">
+      <div class="clue-meta">
+        <span id="wordLabel">Дума</span>
+        <span id="progressLabel">0 / 0</span>
+      </div>
+      <div id="clueText" class="clue-text">Зареждане...</div>
+    </div>
+
+    <div class="board-wrap">
+      <div id="grid" class="grid"></div>
+    </div>
+
+    <div id="statusBanner" class="status-banner"></div>
+
+    <div id="keyboard" class="keyboard"></div>
+  </div>
+
+  <script>
+    const PUZZLES = [
+      {
+        size: 7,
+        words: [
+          // М (1,1), О (1,2), Р (1,3), Е (1,4)
+          { num: 1, row: 1, col: 1, dir: "H", answer: "МОРЕ", clue: "Голям воден басейн край брега" },
+          // М (1,1), А (2,1), Я (3,1)
+          { num: 2, row: 1, col: 1, dir: "V", answer: "МАЯ", clue: "Набухвател за тесто или женско име" },
+          // Е (1,4), З (2,4), Е (3,4), Р (4,4), О (5,4)
+          { num: 3, row: 1, col: 4, dir: "V", answer: "ЕЗЕРО", clue: "Затворен водоем в сушата" },
+          // Я (3,1), Б (3,2), Ъ (3,3), Е (3,4), Л (3,5), К (3,6), А (3,7) -> коригирана до 6 букви в рамките на решетката:
+          // Я (3,1), Б (3,2), Ъ (3,3), Е (3,4), Л (3,5), К (3,6)
+          { num: 4, row: 3, col: 1, dir: "H", answer: "ЯБЪЕЛК", clue: "Тестова дума — виж подсказката по-долу" },
+          // З (5,2), В (5,3), Е (5,4), З (5,5), Д (5,6)
+          { num: 5, row: 5, col: 2, dir: "H", answer: "ЗВЕЗД", clue: "Светещо небесно тяло нощем" }
+        ]
+      },
+      {
+        size: 7,
+        words: [
+          // С (1,1), Л (1,2), Ъ (1,3), Н (1,4), Ц (1,5), Е (1,6)
+          { num: 1, row: 1, col: 1, dir: "H", answer: "СЛЪНЦЕ", clue: "Централната звезда в нашата система" },
+          // С (1,1), Н (2,1), Я (3,1), Г (4,1)
+          { num: 2, row: 1, col: 1, dir: "V", answer: "СНЯГ", clue: "Бяла зимна покривка" },
+          // Н (1,4), О (2,4), В (3,4), А (4,4)
+          { num: 3, row: 1, col: 4, dir: "V", answer: "НОВА", clue: "Неизползвана, съвсем прясна" },
+          // Я (3,1), В (3,2), Т (3,3), В (3,4) -> пресича СНЯГ на (3,1)=Я и НОВА на (3,4)=В
+          { num: 4, row: 3, col: 1, dir: "H", answer: "ЯВТВ", clue: "Мрежов ред за проверка на пресечните точки" },
+          // Г (4,1), Р (4,2), А (4,3), А (4,4) -> пресича СНЯГ на (4,1)=Г и НОВА на (4,4)=А
+          { num: 5, row: 4, col: 1, dir: "H", answer: "ГРАА", clue: "Долен хоризонтален ред" }
+        ]
+      }
+    ];
+
+    // Първият пъзел има напълно естествени, смислени думи с пресечени букви:
+    // Думи за първия пъзел (7x7):
+    // 1. H (1,1): "РЕКА" -> Р(1,1) Е(1,2) К(1,3) А(1,4)
+    // 2. V (1,1): "РЕД"  -> Р(1,1) Е(2,1) Д(3,1)
+    // 3. V (1,3): "КОТ"  -> К(1,3) О(2,3) Т(3,3)
+    // 4. H (3,1): "ДОМ"  -> Д(3,1) О(3,2) Т(3,3) -> по-добре Д(3,1) О(3,2) М(3,3) и V (1,3) "КАП" -> К(1,3) А(2,3) М(3,3) (или "КАТ" / "КАЛ")
+    PUZZLES[0] = {
+      size: 7,
+      words: [
+        { num: 1, row: 1, col: 1, dir: "H", answer: "РЕКА", clue: "Течаща вода в корито (1–4)" },
+        { num: 2, row: 1, col: 1, dir: "V", answer: "РЕД", clue: "Подредба или линия от хора/букви" },
+        { num: 3, row: 1, col: 3, dir: "V", answer: "КАЛ", clue: "Смес от пръст и вода" },
+        { num: 4, row: 3, col: 1, dir: "H", answer: "ДОЛ", clue: "Понижение между хълмове или планини" }
+      ]
+    };
+
+    // Вторият пъзел с пресечени букви:
+    // 1. H (1,1): "МОРЕ" -> М(1,1) О(1,2) Р(1,3) Е(1,4)
+    // 2. V (1,1): "МАЯ"  -> М(1,1) А(2,1) Я(3,1)
+    // 3. V (1,3): "РАК"  -> Р(1,3) А(2,3) К(3,3)
+    // 4. H (3,1): "ЯМК" -> нека е (2,1) "АЗ" -> А(2,1) З(2,2) и (2,3) "А" -> по-просто и чисто:
+    // Втори пъзел:
+    // 1. H (2,2): "ДЕН" -> Д(2,2) Е(2,3) Н(2,4)
+    // 2. V (2,2): "ДОМ" -> Д(2,2) О(3,2) М(4,2)
+    // 3. V (2,4): "НОЩ" -> Н(2,4) Ъ(3,4) -> по-добре:
+    // 1. H (2,2): "МИР" -> М(2,2) И(2,3) Р(2,4)
+    // 2. V (2,2): "МАК" -> М(2,2) А(3,2) К(4,2)
+    // 3. H (4,2): "КОТ" -> К(4,2) О(4,3) Т(4,4)
+    PUZZLES[1] = {
+      size: 7,
+      words: [
+        { num: 1, row: 2, col: 2, dir: "H", answer: "МИР", clue: "Спокойствие и липса на война" },
+        { num: 2, row: 2, col: 2, dir: "V", answer: "МАК", clue: "Червено полско цвете" },
+        { num: 3, row: 4, col: 2, dir: "H", answer: "КОТ", clue: "Домашен любимец" }
+      ]
+    };
+
+    const KB_ROWS = [
+      ["Я", "В", "Е", "Р", "Т", "Ъ", "У", "И", "О", "П", "Ч"],
+      ["А", "С", "Д", "Ф", "Г", "Х", "Й", "К", "Л", "Ш", "Щ"],
+      ["З", "Ь", "Ц", "Ж", "Б", "Н", "М", "Ю", "⌫"]
+    ];
+
+    let puzzleIdx = 0;
+    let gridData = [];
+    let selected = { r: 1, c: 1 };
+    let dir = "H";
+
+    const gridEl = document.getElementById("grid");
+    const clueEl = document.getElementById("clueText");
+    const wordLabelEl = document.getElementById("wordLabel");
+    const progressEl = document.getElementById("progressLabel");
+    const statusEl = document.getElementById("statusBanner");
+    const dirBtn = document.getElementById("dirBtn");
+    const nextBtn = document.getElementById("nextPuzzleBtn");
+    const kbEl = document.getElementById("keyboard");
+
+    function showError(msg) {
+      statusEl.className = "status-banner error";
+      statusEl.textContent = msg;
+    }
+
+    function clearError() {
+      statusEl.className = "status-banner";
+      statusEl.textContent = "";
+    }
+
+    window.addEventListener("error", (event) => {
+      showError(`Грешка в скрипта: ${event.message || "неизвестна"}`);
+    });
+
+    window.addEventListener("unhandledrejection", (event) => {
+      const reason = event.reason?.message || event.reason || "неизвестна";
+      showError(`Необработена грешка: ${reason}`);
+    });
+
+    function loadPuzzle(idx) {
+      try {
+        if (!Array.isArray(PUZZLES) || PUZZLES.length === 0) {
+          showError("Няма заредени кръстословици.");
+          return;
+        }
+
+        puzzleIdx = ((idx % PUZZLES.length) + PUZZLES.length) % PUZZLES.length;
+        const p = PUZZLES[puzzleIdx];
+        clearError();
+        gridEl.style.gridTemplateColumns = `repeat(${p.size}, 1fr)`;
+
+        gridData = Array.from({ length: p.size }, () =>
+          Array.from({ length: p.size }, () => ({
+            blocked: true,
+            solution: "",
+            value: "",
+            num: "",
+            words: []
+          }))
+        );
+
+        p.words.forEach((w, wIndex) => {
+          for (let i = 0; i < w.answer.length; i++) {
+            const r = w.dir === "V" ? w.row + i : w.row;
+            const c = w.dir === "H" ? w.col + i : w.col;
+            if (r >= 0 && r < p.size && c >= 0 && c < p.size) {
+              const cell = gridData[r][c];
+              cell.blocked = false;
+              cell.solution = w.answer[i];
+              cell.words.push({ ...w, wIndex });
+              if (i === 0 && !cell.num) {
+                cell.num = String(w.num);
+              }
+            }
+          }
+        });
+
+        const firstWord = p.words[0];
+        selected = { r: firstWord.row, c: firstWord.col };
+        dir = firstWord.dir === "V" ? "V" : "H";
+        updateDirLabel();
+        render();
+      } catch (err) {
+        showError(`Неуспешно зареждане: ${err.message || err}`);
+      }
+    }
+
+    function updateDirLabel() {
+      dirBtn.textContent = dir === "H" ? "Посока: →" : "Посока: ↓";
+    }
+
+    function getActiveWord() {
+      const p = PUZZLES[puzzleIdx];
+      const cell = gridData[selected.r]?.[selected.c];
+      if (!cell || cell.blocked || cell.words.length === 0) {
+        return p.words[0];
+      }
+      return cell.words.find((w) => w.dir === dir) || cell.words[0];
+    }
+
+    function isInWord(r, c, word) {
+      if (!word) return false;
+      for (let i = 0; i < word.answer.length; i++) {
+        const wr = word.dir === "V" ? word.row + i : word.row;
+        const wc = word.dir === "H" ? word.col + i : word.col;
+        if (wr === r && wc === c) return true;
+      }
+      return false;
+    }
+
+    function render() {
+      const p = PUZZLES[puzzleIdx];
+      const activeWord = getActiveWord();
+
+      if (activeWord && activeWord.dir !== dir) {
+        const cell = gridData[selected.r]?.[selected.c];
+        if (cell && !cell.words.some((w) => w.dir === dir)) {
+          dir = activeWord.dir;
+          updateDirLabel();
+        }
+      }
+
+      wordLabelEl.textContent = activeWord
+        ? `Дума №${activeWord.num} (${activeWord.dir === "H" ? "хоризонтално" : "вертикално"})`
+        : "Дума";
+      clueEl.textContent = activeWord ? activeWord.clue : "";
+
+      let totalOpen = 0;
+      let filledOpen = 0;
+      let allCorrect = true;
+
+      gridEl.innerHTML = "";
+
+      for (let r = 0; r < p.size; r++) {
+        for (let c = 0; c < p.size; c++) {
+          const cell = gridData[r][c];
+          const div = document.createElement("div");
+          div.className = "cell";
+
+          if (cell.blocked) {
+            div.classList.add("block");
+          } else {
+            totalOpen++;
+            if (cell.value) filledOpen++;
+            if (cell.value !== cell.solution) allCorrect = false;
+
+            div.classList.add("open");
+            if (isInWord(r, c, activeWord)) div.classList.add("word-highlight");
+            if (selected.r === r && selected.c === c) div.classList.add("active");
+
+            if (cell.value) {
+              if (cell.value === cell.solution) {
+                div.classList.add("correct");
+              } else {
+                div.classList.add("wrong");
+              }
+            }
+
+            if (cell.num) {
+              const numSpan = document.createElement("span");
+              numSpan.className = "num";
+              numSpan.textContent = cell.num;
+              div.appendChild(numSpan);
+            }
+
+            div.appendChild(document.createTextNode(cell.value));
+
+            div.addEventListener("click", () => {
+              if (selected.r === r && selected.c === c) {
+                const currentCell = gridData[r][c];
+                const hasBothDirs =
+                  currentCell.words.some((w) => w.dir === "H") &&
+                  currentCell.words.some((w) => w.dir === "V");
+                if (hasBothDirs) {
+                  dir = dir === "H" ? "V" : "H";
+                  updateDirLabel();
+                }
+              }
+              selected = { r, c };
+              render();
+            });
+          }
+
+          gridEl.appendChild(div);
+        }
+      }
+
+      progressEl.textContent = `${filledOpen} / ${totalOpen}`;
+
+      if (!statusEl.classList.contains("error")) {
+        if (totalOpen > 0 && allCorrect) {
+          statusEl.className = "status-banner";
+          statusEl.textContent = "Браво! Кръстословицата е решена вярно!";
+        } else {
+          statusEl.className = "status-banner";
+          statusEl.textContent = "";
+        }
+      }
+    }
+
+    function stepCell(delta) {
+      const p = PUZZLES[puzzleIdx];
+      const nr = selected.r + (dir === "V" ? delta : 0);
+      const nc = selected.c + (dir === "H" ? delta : 0);
+      if (nr >= 0 && nr < p.size && nc >= 0 && nc < p.size && !gridData[nr][nc].blocked) {
+        selected = { r: nr, c: nc };
+      }
+    }
+
+    function handleInput(ch) {
+      const cell = gridData[selected.r]?.[selected.c];
+      if (!cell || cell.blocked) return;
+
+      if (ch === "⌫") {
+        if (cell.value) {
+          cell.value = "";
+        } else {
+          stepCell(-1);
+          const prev = gridData[selected.r]?.[selected.c];
+          if (prev && !prev.blocked) prev.value = "";
+        }
+        render();
+        return;
+      }
+
+      cell.value = ch;
+      stepCell(1);
+      render();
+    }
+
+    function buildKeyboard() {
+      kbEl.innerHTML = "";
+      KB_ROWS.forEach((row) => {
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "kb-row";
+        row.forEach((k) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "key" + (k === "⌫" ? " wide" : "");
+          btn.textContent = k;
+          btn.addEventListener("click", () => handleInput(k));
+          rowDiv.appendChild(btn);
+        });
+        kbEl.appendChild(rowDiv);
+      });
+    }
+
+    dirBtn.addEventListener("click", () => {
+      dir = dir === "H" ? "V" : "H";
+      updateDirLabel();
+      render();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      loadPuzzle(puzzleIdx + 1);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace") {
+        handleInput("⌫");
+      } else if (/^[а-яА-Я]$/.test(e.key)) {
+        handleInput(e.key.toUpperCase());
+      }
+    });
+
+    buildKeyboard();
+    loadPuzzle(0);
+  </script>
+</body>
+</html>
